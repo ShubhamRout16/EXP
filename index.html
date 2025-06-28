@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Personal - Expense Tracker</title>
-</head>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 <body>
   <!-- heading & intro -->
   <div id="heading">
@@ -12,7 +13,8 @@
     <h2>Track. Analyze. Save.</h2>
     <h3>EXP helps you understand where your money goes so you can make smarter financial decisions every day.</h3>
   </div>
-   <!-- dashboard showing current balance , total income , total expenses , transactions-->
+
+  <!-- dashboard showing current balance , total income , total expenses , transactions-->
   <div id="dashboard-container">
     <div class="cards-grid">
       <!-- section for four cards -->
@@ -36,6 +38,141 @@
         <div class="card-title">Transactions</div>
         <div class="card-count">0</div>
       </div>
+    </div>
+  </div>
+
+  <!-- voice container part -->
+  <div class="voice-container">
+    <!-- voice header -->
+    <div class="voice-header">
+      <img src="icons8-microphone-48.png" alt="mic-icon">
+      <h3>Voice Controls</h3>
+    </div>
+    <!-- voice controls -->
+    <div class="control-sections">
+      <div class="control-buttons">
+        <button id="start-listening">Start Listening</button>
+        <button id="speak-balance">Speak Balance</button>
+      </div>
+    </div>
+    <!-- live transcript section -->
+    <div class="transcript-section">
+      <div>Live Transcript:</div>
+      <div>
+        <span>Say Something....</span>
+      </div>
+    </div>
+  </div>
+  <!-- given commands section -->
+  <div class="commands-section">
+    <h3>Voice Commands:</h3>
+    <ul>
+      <li>"Add income of 1000RS for salary"</li>
+      <li>"Add expense of 500RS for food"</li>
+      <li>"Check my balance"</li>
+      <li>"What's my current balance?"</li>
+      <li>"Delete transaction number 3"</li>
+      <li>"Show my autopay reminders"</li>
+    </ul>
+  </div>
+
+  <!-- remaining portions -->
+  <div class="container">
+    <nav class="navbar">
+      <button class="nav-btn active">Transactions</button>
+      <button class="nav-btn">Analytics</button>
+      <button class="nav-btn">Auto Pay</button>
+      <button class="nav-btn">History</button>
+    </nav>
+
+    <!-- add task card -->
+    <div class="addTaskCard">
+      <h2>➕ Add Transaction</h2> 
+      <form id="transactionForm">
+        <div class="transactionType">
+          <!-- income -->
+          <label>
+            <input type="radio" name="type" value="income" checked />
+            <span class="income">Income</span> 
+          </label>
+          <!-- expense -->
+          <label>
+            <input type="radio" name="type" value="expense" />
+            <span class="expense">Expense</span>
+          </label>
+        </div>
+        
+        <div class="form-group">
+          <label for="category">Category *</label>
+          <select id="category" required>
+            <option value="">Select a category</option>
+            <!-- dynamically fill with JS depending on type -->
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="amount">Amount *</label>
+          <input type="number" id="amount" placeholder="0.00" required />
+        </div>
+        <div class="form-group">
+          <label for="date">Date</label>
+          <input type="date" id="date" />
+        </div>
+        <div class="form-group">
+          <label for="description">Description (Optional)</label>
+          <input type="text" id="description" placeholder="Add a note..." />
+        </div>
+        <button type="submit" class="submit-btn">Add Transaction</button>
+      </form>
+    </div>
+
+    <div id="recent-transactions">
+      <h2>Recent Transactions</h2>
+      <ul id="transactionsList">
+        <li>No transactions found</li>
+      </ul>
+    </div>
+
+    <!-- Analytics Section -->
+    <div id="analyticsSection" class="page-section" style="display: none;">
+      <h2>Analytics</h2>
+      <p>Analytics content coming soon...</p>
+    </div>
+
+    <!-- autopay section -->
+    <div class="page-Section" id="autoPaySection" style="display: none;">
+      <!-- before clicking auto pay button -->
+      <h2>Auto-Pay Setup</h2>
+      <button id="showAutoPayForm">+ Add Auto-Pay</button>
+
+      <!-- after clicking auto pay button -->
+      <form id="autoPayForm" style="display: none;">
+        <input type="text" id="autoPayName" placeholder="eg..Netflix Subscription" required>
+        <input type="number" id="autoPayAmount" placeholder="0.00" required>
+        <select id="autoPayCategory" required>
+          <option value="">Select Category</option>
+
+          <!-- add values as needed later -->
+        </select>
+        <select id="autoPayFrequency" required>
+          <option value="Monthly">Monthly</option>
+          <option value="Weekly">Weekly</option>
+        </select>
+        <input type="date" id="nextDueDate" required>
+        <button type="submit">Schedule Auto-Pay</button>
+        <button type="submit" id="cancelAutoPay">Cancel Auto-Pay</button>
+      </form>
+
+      <!-- card for seeing scheduled payments -->
+       <div id="scheduledPayments">
+        <h3>Scheduled Payments (0)</h3>
+        <p>No auto-payments scheduled</p>
+       </div>
+    </div>
+
+    <!-- history section -->
+    <div id="historySection" class="page-section" style="display: none;">
+      <h2>All Transactions</h2>
+      <p>No Transactions found</p>
     </div>
   </div>
 </body>
