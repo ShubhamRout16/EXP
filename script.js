@@ -181,3 +181,113 @@ function loadSavedTransactions(){
     renderTransactions();
   }
 }
+
+// feat: voice command functionality
+// here's what this feature will do
+/*
+“add income of 10000 for savings” → adds a transaction
+
+“add expense of 500 for food” → adds a transaction
+
+“delete transaction number 3” → deletes
+
+“what’s my balance” → reads current balance aloud
+
+“show my autopay reminders” → switches tab or speaks reminders
+*/
+
+function startListening(){
+  // later usage to execute commands
+  let type = ''
+  let amount = 0
+  let category = ''
+  const today = new Date();
+  // this part shows what we are speaking is understood by browser
+  const showTranscript = document.getElementById('transcript')
+  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  
+  recognition.onresult = (e) => {
+    transcript = e.results[0][0].transcript;
+    showTranscript.innerHTML = `
+    <p>${transcript}</p>
+    `
+    console.log(`user says : ${transcript}`);
+
+    // parse commands
+    if(transcript.includes('add income') || transcript.includes('add expense')){
+      const parts = transcript.toLowerCase().split(' '); // returns array
+      // extract type , amount and category from the parts
+      parts.forEach((words , index) => {
+        if(words === 'income' || words === 'expense'){
+          type = words;
+        }
+        else if(!isNaN(words) && words !== ' '){
+          amount = Number(words)
+        }
+        else if(words === 'for'){
+          category = parts[index+1] 
+        }
+      })
+      
+      let voiceTransactionObj = {
+        id: Date.now(),
+        type: type,
+        category: category,
+        amount: amount,
+        date: today.toLocaleDateString(),
+      }
+
+      transactions.push(voiceTransactionObj)
+      saveChangesToLocalStorage();
+      renderTransactions();
+      updateDashboardCards();
+    }
+    else if(transcript.includes('delete')){
+      const parts = transcript.toLowerCase().split(' ')
+      parts.forEach((findNum , index) => {
+        if(findNum === 'number'){
+          const objectNo = Number(parts[index+1])
+          
+          if(!isNaN(objectNo) && objectNo >=1 && objectNo <= transactions.length){
+            const deleteElementIndex = transactions[objectNo-1]
+            deleteTransaction(deleteElementIndex)
+          }
+          else{
+            showTranscript.textContent = 'Transaction number invalid or out of range'
+          }
+        }
+      })
+    }
+    else if(transcript.includes('speak balance')){
+      // to speak balance -> calculate balance
+      let income = 0
+      let expenses = 0
+
+      transactions.forEach(obj => {
+        if(obj.type === 'income'){
+          income += Number(obj.amount)
+        }else{
+          expenses += Number(obj.amount)
+        }
+      })
+
+      let balance = income - expenses;
+      const utterance = new SpeechSynthesisUtterance(balance)
+      window.speechSynthesis.speak(utterance);
+    }
+    else if(transcript.includes('switch tab')){
+      // to switch tabs -> get tab name
+      const parts = transcript.toLowerCase().split('')
+      const keywords = ['transactions','autopay','history','analytics']
+      const tabName = keywords.find(tab => parts.includes(tab))
+      showTab(tabName);
+    }
+    
+  }
+
+  recognition.onerror = (e) => {
+    showTranscript.textContent = 'Could not understand, please try again.'
+  }
+
+  recognition.start();
+}
