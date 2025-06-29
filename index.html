@@ -26,25 +26,25 @@
 
       <!-- Dashboard cards -->
       <div class="summary-grid">
-        <button class="summary-card" onclick="handleSummaryCardClick('balance')">
+        <button class="summary-card" data-type="balance" onclick="handleSummaryCardClick('balance')">
           <div class="summary-card-content">
             <div class="summary-card-title">Current Balance</div>
             <div class="summary-card-value">₹0.00</div>
           </div>
         </button>
-        <button class="summary-card" onclick="handleSummaryCardClick('income')">
+        <button class="summary-card" data-type="income" onclick="handleSummaryCardClick('income')">
           <div class="summary-card-content">
             <div class="summary-card-title">Total Income</div>
             <div class="summary-card-value">₹0.00</div>
           </div>
         </button>
-        <button class="summary-card" onclick="handleSummaryCardClick('expenses')">
+        <button class="summary-card" data-type="expenses" onclick="handleSummaryCardClick('expenses')">
           <div class="summary-card-content">
             <div class="summary-card-title">Total Expenses</div>
             <div class="summary-card-value">₹0.00</div>
           </div>
         </button>
-        <button class="summary-card" onclick="handleSummaryCardClick('transactions')">
+        <button class="summary-card" data-type="transactions" onclick="handleSummaryCardClick('transactions')">
           <div class="summary-card-content">
             <div class="summary-card-title">Transactions</div>
             <div class="summary-card-value">0</div>

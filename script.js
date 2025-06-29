@@ -76,6 +76,9 @@ function addTransaction(event){
   // form reference to reset the form after every submit
   const myForm = document.querySelector('.transaction-form-content')
   myForm.reset();
+
+  // update the dashboard cards after every addition
+  updateDashboardCards();
 }
 
 // feat: to remove the added transaction from the recent transactions
@@ -88,6 +91,8 @@ function deleteTransaction(id){
   transactions = transactions.filter(obj => obj.id !== id)
   // rendering the transactions list
   renderTransactions();
+  // update the dashboard cards after every deletion
+  updateDashboardCards();
 }
 
 // feat: render the recent transactions list to show any changes made in the previous transactions list
@@ -122,4 +127,30 @@ function renderTransactions(){
     `
     transactionsContainer.appendChild(indiTransactionDiv);
   })
+}
+
+// feat: update dashboard cards
+// here's what this code will do
+// everytime a transaction is added or deleted calculate the values are update in the dasjboard cards
+// and call this function everytime adding transactions or deleting it
+
+function updateDashboardCards(){
+  // calculate the values for the dashboard cards
+  let income = 0
+  let expenses = 0
+
+  transactions.forEach(obj => {
+    if(obj.type === 'income'){
+      income += Number(obj.amount)
+    }else{
+      expenses += Number(obj.amount)
+    }
+  })
+
+  let balance = income - expenses;
+
+  document.querySelector('.summary-card[data-type="balance"] .summary-card-value').textContent = `₹${balance.toFixed(2)}`
+  document.querySelector('.summary-card[data-type="income"] .summary-card-value').textContent = `₹${income.toFixed(2)}`
+  document.querySelector('.summary-card[data-type="expenses"] .summary-card-value').textContent = `₹${expenses.toFixed(2)}`
+  document.querySelector('.summary-card[data-type="transactions"] .summary-card-value').textContent = transactions.length
 }
