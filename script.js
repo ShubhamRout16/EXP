@@ -129,24 +129,39 @@ function renderTransactions(){
   const transactionsContainer = document.getElementById('transactions-list')
   // clearing the transactions container
   transactionsContainer.innerHTML = ''
-
   // if there is no object in the transaction array then show the default text
   if(transactions.length === 0){
     transactionsContainer.innerHTML = `
-    <p>No Transactions found</p>
+      <div class="no-transactions-message">
+        <p>No Transactions found</p>
+      </div>
     `
+    return;
   }
-
+  
   transactions.forEach(obj => {
     const indiTransactionDiv = document.createElement('div')
+    indiTransactionDiv.className = 'transaction-card fade-in'
     indiTransactionDiv.innerHTML = `
-    <div>
-      <p><strong>Type : ${obj.type}</strong></p>
-      <p><strong>Category : ${obj.category}</strong></p>
-      <p><strong>Amount : ${obj.amount}</strong></p>
-      <p><strong>Date : ${obj.date}</strong></p>
-      <button onclick="deleteTransaction(${obj.id})">Delete</button>
-    </div>
+      <div class="transaction-card-left">
+        <span class="transaction-type-badge ${obj.type.toLowerCase()}">
+          ${obj.type}
+        </span>
+        <div class="transaction-details">
+          <h3 class="transaction-category">${obj.category}</h3>
+          <div class="transaction-meta">
+            <span class="transaction-date">${obj.date}</span>
+          </div>
+        </div>
+      </div>
+      <div class="transaction-card-right">
+        <span class="transaction-amount ${obj.type.toLowerCase()}">
+          ${obj.type.toLowerCase() === 'expense' ? '-' : '+'}₹${obj.amount}
+        </span>
+        <button class="transaction-delete-btn" onclick="deleteTransaction(${obj.id})">
+          Delete
+        </button>
+      </div>
     `
     transactionsContainer.appendChild(indiTransactionDiv);
   })
