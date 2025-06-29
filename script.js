@@ -47,6 +47,7 @@ function showTab(tabName){
 */
 
 let transactions = [];
+let currentId ;
 function addTransaction(event){
   event.preventDefault();
   // all the input data from the form
@@ -63,36 +64,62 @@ function addTransaction(event){
       date: dataObject.date,
       description: dataObject.description,
     }
+    currentId = transactionObject.id;
     transactions.push(transactionObject);
   }
   console.log(transactions);
   
-  
-  const recentTransactions = document.querySelector('.recent-transaction-card')
-  // check if the transaction is the first time
-  if(transactions.length === 1){
-    recentTransactions.innerHTML = ''
-  }
 
-  // creating a new div so as to add new card each time not to replace the previous card
-  const transactionDiv = document.createElement('div')
-  
-  transactionDiv.innerHTML =
-  `
-  <div>
-  <p><strong>Type : ${dataObject.transactionType}</strong></p>
-  <p><strong>Category : ${dataObject.category}</strong></p>
-  <p><strong>Amount : ${dataObject.amount}</strong></p>
-  <p><strong>Date : ${dataObject.date}</strong></p>
-  <button>Delete</button>
-  </div>
-  `;
-
-  recentTransactions.appendChild(transactionDiv)
-  // bug appending the child makes the the div to append inside the current text
-  // solution: if its the first transaction clear the container
+  // call renderTransaction to update any changes made
+  renderTransactions();
 
   // form reference to reset the form after every submit
   const myForm = document.querySelector('.transaction-form-content')
   myForm.reset();
+}
+
+// feat: to remove the added transaction from the recent transactions
+// here's what this feature will do
+// it will capture the element which is  used to call this function
+// and then create a new array without that element
+// then render the transactions object
+
+function deleteTransaction(id){
+  transactions = transactions.filter(obj => obj.id !== id)
+  // rendering the transactions list
+  renderTransactions();
+}
+
+// feat: render the recent transactions list to show any changes made in the previous transactions list
+// here's what this feature will do
+// clears the recent transactions container
+// loops through the new transactions array -> if any changes is made
+// creates a new div element for every object in the transactions array
+// appends the new div to contianer 
+
+function renderTransactions(){
+  const transactionsContainer = document.getElementById('transactions-list')
+  // clearing the transactions container
+  transactionsContainer.innerHTML = ''
+
+  // if there is no object in the transaction array then show the default text
+  if(transactions.length === 0){
+    transactionsContainer.innerHTML = `
+    <p>No Transactions found</p>
+    `
+  }
+
+  transactions.forEach(obj => {
+    const indiTransactionDiv = document.createElement('div')
+    indiTransactionDiv.innerHTML = `
+    <div>
+      <p><strong>Type : ${obj.type}</strong></p>
+      <p><strong>Category : ${obj.category}</strong></p>
+      <p><strong>Amount : ${obj.amount}</strong></p>
+      <p><strong>Date : ${obj.date}</strong></p>
+      <button onclick="deleteTransaction(${obj.id})">Delete</button>
+    </div>
+    `
+    transactionsContainer.appendChild(indiTransactionDiv);
+  })
 }
