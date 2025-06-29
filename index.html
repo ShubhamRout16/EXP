@@ -114,7 +114,7 @@
 
                 <div class="form-group">
                   <label for="category" class="form-label">Category *</label>
-                  <select id="category" class="form-select" required>
+                  <select id="category" class="form-select" name="category" required>
                     <option value="">Select a Category</option>
                     <option value="food">Food</option>
                     <option value="transport">Transport</option>
@@ -134,17 +134,17 @@
 
                 <div class="form-group">
                   <label for="amount" class="form-label">Amount *</label>
-                  <input type="number" id="amount" class="form-input" step="0.01" min="0" required>
+                  <input type="number" id="amount" class="form-input" step="0.01" min="0" name="amount" required>
                 </div>
 
                 <div class="form-group">
                   <label for="date" class="form-label">Date</label>
-                  <input type="date" id="date" class="form-input">
+                  <input type="date" id="date" class="form-input" name="date">
                 </div>
 
                 <div class="form-group">
                   <label for="description" class="form-label">Description (optional)</label>
-                  <textarea id="description" class="form-textarea" placeholder="Add a note..."></textarea>
+                  <textarea id="description" class="form-textarea" placeholder="Add a note..." name="description"></textarea>
                 </div>
 
                 <button type="submit" class="submit-button">Add Transaction</button>
@@ -156,7 +156,7 @@
               <div class="recent-transactions-header">Recent Transactions</div>
               <div id="transactions-list" class="transactions-list">
                 <div class="no-transactions">
-                  <p>No Transactions found</p>
+                  <p class="recent-transaction-card">No Transactions found</p>
                 </div>
               </div>
             </div>
