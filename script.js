@@ -1,4 +1,4 @@
-// feat: tab switching functionality 
+// feat: tab switching functionality {done}
 // click on the tab to show its respective page content
 
 
@@ -25,3 +25,4 @@ function showTab(tabName){
   // adding active class to the clicked button tab content
   chosenElement.classList.add('active')
 }
+
