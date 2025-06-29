@@ -233,6 +233,7 @@ function startListening(){
   let amount = 0
   let category = ''
   const today = new Date();
+  let toBeDeleted = 0;
   // this part shows what we are speaking is understood by browser
   const showTranscript = document.getElementById('transcript')
   const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
@@ -272,13 +273,19 @@ function startListening(){
       saveChangesToLocalStorage();
       renderTransactions();
       updateDashboardCards();
+      
+
+      // feedback voice
+      const text = 'Transaction Added Successfully !'
+      const utterance = new SpeechSynthesisUtterance(text)
+      window.speechSynthesis.speak(utterance)
     }
     else if(transcript.includes('delete')){
       const parts = transcript.toLowerCase().split(' ')
       parts.forEach((findNum , index) => {
         if(findNum === 'number'){
           const objectNo = Number(parts[index+1])
-          
+          toBeDeleted = objectNo
           if(!isNaN(objectNo) && objectNo >=1 && objectNo <= transactions.length){
             const deleteElementIndex = transactions[objectNo-1]
             deleteTransaction(deleteElementIndex.id)
@@ -288,6 +295,11 @@ function startListening(){
           }
         }
       })
+
+      // feedback voice
+      const text = `Deleted Transaction Number ${toBeDeleted}`
+      const utterance = new SpeechSynthesisUtterance(text)
+      window.speechSynthesis.speak(utterance);
     }
     else if(transcript.includes('speak balance')){
       // to speak balance -> calculate balance
@@ -321,6 +333,10 @@ function startListening(){
 
   recognition.onerror = (e) => {
     showTranscript.textContent = 'Could not understand, please try again.'
+  }
+
+  recognition.onend = (e) => {
+
   }
 
   recognition.start();
