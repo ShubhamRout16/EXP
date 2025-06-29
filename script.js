@@ -1,6 +1,22 @@
 window.onload = () => {
   loadSavedTransactions();
 }
+// feat: just calculates balance and returns it
+function balance(){
+  let income = 0
+  let expenses = 0
+
+  transactions.forEach(obj => {
+    if(obj.type === 'income'){
+      income += Number(obj.amount)
+    }else{
+      expenses += Number(obj.amount)
+    }
+  })
+
+  let balance = income - expenses;
+  return balance;
+}
 
 // feat: tab switching functionality {done}
 // click on the tab to show its respective page content
@@ -250,7 +266,7 @@ function startListening(){
           
           if(!isNaN(objectNo) && objectNo >=1 && objectNo <= transactions.length){
             const deleteElementIndex = transactions[objectNo-1]
-            deleteTransaction(deleteElementIndex)
+            deleteTransaction(deleteElementIndex.id)
           }
           else{
             showTranscript.textContent = 'Transaction number invalid or out of range'
@@ -260,29 +276,32 @@ function startListening(){
     }
     else if(transcript.includes('speak balance')){
       // to speak balance -> calculate balance
-      let income = 0
-      let expenses = 0
-
-      transactions.forEach(obj => {
-        if(obj.type === 'income'){
-          income += Number(obj.amount)
-        }else{
-          expenses += Number(obj.amount)
-        }
-      })
-
-      let balance = income - expenses;
-      const utterance = new SpeechSynthesisUtterance(balance)
+      const utterance = new SpeechSynthesisUtterance(balance())
       window.speechSynthesis.speak(utterance);
     }
-    else if(transcript.includes('switch tab')){
-      // to switch tabs -> get tab name
-      const parts = transcript.toLowerCase().split('')
-      const keywords = ['transactions','autopay','history','analytics']
-      const tabName = keywords.find(tab => parts.includes(tab))
-      showTab(tabName);
+    else if(transcript.includes('current balance')){
+      const utterance = new SpeechSynthesisUtterance(balance())
+      window.speechSynthesis.speak(utterance);
     }
-    
+    else if(transcript.includes('switch to')){
+      const keywordToTabId = {
+        'transactions': 'transactions',
+        'autopay': 'autopay',
+        'auto pay': 'autopay',
+        'history': 'history',
+        'analytics': 'analytics'
+      };
+      
+      // to switch tabs -> get tab name
+      const parts = transcript.toLowerCase().split(' ')
+      const keywords = ['transactions','autopay','history','analytics','auto pay']
+      const tabName = keywords.find(tab => parts.includes(tab))
+      if(tabName){
+        showTab(keywordToTabId[tabName])
+      }else {
+        showTranscript.textContent = "Couldn't recognize tab name";
+      }
+    }
   }
 
   recognition.onerror = (e) => {
@@ -291,3 +310,11 @@ function startListening(){
 
   recognition.start();
 }
+
+// feat: speak balance
+function speakBalance(){
+  const utterance = new SpeechSynthesisUtterance(balance())
+  window.speechSynthesis.speak(utterance)
+}
+
+// bug: updateDashboard doesnt persists -> will solve after voice commands
