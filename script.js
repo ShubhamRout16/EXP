@@ -1,3 +1,7 @@
+window.onload = () => {
+  loadSavedTransactions();
+}
+
 // feat: tab switching functionality {done}
 // click on the tab to show its respective page content
 
@@ -68,7 +72,8 @@ function addTransaction(event){
     transactions.push(transactionObject);
   }
   console.log(transactions);
-  
+  // saving changes to localStorage
+  saveChangesToLocalStorage();
 
   // call renderTransaction to update any changes made
   renderTransactions();
@@ -89,6 +94,8 @@ function addTransaction(event){
 
 function deleteTransaction(id){
   transactions = transactions.filter(obj => obj.id !== id)
+  // saving to localStorage
+  saveChangesToLocalStorage();
   // rendering the transactions list
   renderTransactions();
   // update the dashboard cards after every deletion
@@ -153,4 +160,24 @@ function updateDashboardCards(){
   document.querySelector('.summary-card[data-type="income"] .summary-card-value').textContent = `₹${income.toFixed(2)}`
   document.querySelector('.summary-card[data-type="expenses"] .summary-card-value').textContent = `₹${expenses.toFixed(2)}`
   document.querySelector('.summary-card[data-type="transactions"] .summary-card-value').textContent = transactions.length
+}
+
+
+// feat: persist the previous data in the browser through LocalStorage
+// here's how this feature will work
+// everytime we make changes in the transacations array we will call a function 
+// which stores the changes made and when page loads the changes previously made will be still their
+
+function saveChangesToLocalStorage(){
+  // converted transactions array to JSON and stored it
+  localStorage.setItem('savedTransactions', JSON.stringify(transactions))
+}
+
+// this function checks if there is any previously saved array and loads it
+function loadSavedTransactions(){
+  const getSavedTransactions = JSON.parse(localStorage.getItem('savedTransactions'))
+  if(getSavedTransactions){
+    transactions = getSavedTransactions
+    renderTransactions();
+  }
 }
