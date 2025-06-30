@@ -138,6 +138,17 @@
                   <input type="number" id="amount" class="form-input" step="0.01" min="0" name="amount" required>
                 </div>
 
+                <div class="auto-pay-form">
+                  <div class="auto-pay-checkbox">
+                    <input type="checkbox" name="autopay" id="checkautopay">
+                    <label for="checkautopay">Enable Autopay</label>
+                  </div>
+                  <div class="auto-pay-time">
+                    <input type="datetime-local" name="autopaytime" id="scheduledtime">
+                    <label for="scheduledtime">Scheduled Time</label>
+                  </div>
+                </div>
+
                 <div class="form-group">
                   <label for="date" class="form-label">Date</label>
                   <input type="date" id="date" class="form-input" name="date">

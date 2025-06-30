@@ -1,5 +1,6 @@
 window.onload = () => {
   loadSavedTransactions();
+  autoPayCountdown();
 }
 // feat: just calculates balance and returns it
 function balance(){
@@ -75,6 +76,10 @@ function addTransaction(event){
   // converting into the object
   const dataObject = Object.fromEntries(formData.entries());
   console.log(dataObject);
+
+  // for autopay feat
+  const autoPayCheckBox = document.getElementById('checkautopay')
+  const myScheduledTime = document.getElementById('scheduledtime')
   if(dataObject.amount > 0 && dataObject.category !== '' && dataObject.date !== ''){
     let transactionObject = {
       id: Date.now(),
@@ -83,6 +88,14 @@ function addTransaction(event){
       amount: dataObject.amount,
       date: dataObject.date,
       description: dataObject.description,
+    }
+    if(autoPayCheckBox.checked){
+      transactionObject.status = 'pending'
+      transactionObject.scheduledTime = myScheduledTime.value
+    }
+    else{
+      transactionObject.status = 'done'
+      transactionObject.scheduledTime = null
     }
     currentId = transactionObject.id;
     transactions.push(transactionObject);
@@ -131,41 +144,86 @@ function renderTransactions(){
   transactionsContainer.innerHTML = ''
   // if there is no object in the transaction array then show the default text
   if(transactions.length === 0){
-    transactionsContainer.innerHTML = `
-      <div class="no-transactions-message">
-        <p>No Transactions found</p>
-      </div>
-    `
-    return;
+   transactionsContainer.innerHTML = `
+    <div class="no-transactions-message">
+     <p>No Transactions found</p>
+    </div>
+   `
+   return;
   }
-  
   transactions.forEach(obj => {
-    const indiTransactionDiv = document.createElement('div')
-    indiTransactionDiv.className = 'transaction-card fade-in'
-    indiTransactionDiv.innerHTML = `
-      <div class="transaction-card-left">
-        <span class="transaction-type-badge ${obj.type.toLowerCase()}">
-          ${obj.type}
-        </span>
-        <div class="transaction-details">
-          <h3 class="transaction-category">${obj.category}</h3>
-          <div class="transaction-meta">
-            <span class="transaction-date">${obj.date}</span>
-          </div>
-        </div>
+   const indiTransactionDiv = document.createElement('div')
+   indiTransactionDiv.className = 'transaction-card fade-in'
+   indiTransactionDiv.innerHTML = `
+    <div class="transaction-card-left">
+     <span class="transaction-type-badge ${obj.type.toLowerCase()}">
+      ${obj.type}
+     </span>
+     <div class="transaction-details">
+      <h3 class="transaction-category">${obj.category}</h3>
+      <div class="transaction-meta">
+       <span class="transaction-date">${obj.date}</span>
+       <div class="meta-separator"></div>
+       <span class="transaction-status ${obj.status.toLowerCase()}">${obj.status}</span>
       </div>
-      <div class="transaction-card-right">
-        <span class="transaction-amount ${obj.type.toLowerCase()}">
-          ${obj.type.toLowerCase() === 'expense' ? '-' : '+'}₹${obj.amount}
-        </span>
-        <button class="transaction-delete-btn" onclick="deleteTransaction(${obj.id})">
-          Delete
-        </button>
-      </div>
-    `
-    transactionsContainer.appendChild(indiTransactionDiv);
+      ${
+       obj.status === "pending"
+       ? `<div class="countdown-timer">⏳ calculating...</div>`
+       : ""
+      }
+     </div>
+    </div>
+    <div class="transaction-card-right">
+     <span class="transaction-amount ${obj.type.toLowerCase()}">
+      ${obj.type.toLowerCase() === 'expense' ? '-' : '+'}₹${obj.amount}
+     </span>
+     <button class="transaction-delete-btn" onclick="deleteTransaction(${obj.id})">
+      Delete
+     </button>
+    </div>
+   `
+   transactionsContainer.appendChild(indiTransactionDiv);
   })
-}
+ }
+
+// feat: adding autopay functionality
+// here's what this feature will do we will create autopay transaction 
+// and add the transaction to the recent transactions with status pending and scheduled timer countdown
+// once timer reaches its countdown then status changes to done and some animations for better ux
+
+function autoPayCountdown(){
+  setInterval(() => {
+   const nowTime = Date.now()
+   transactions.forEach(obj => {
+    if(obj.status === 'pending' && obj.scheduledTime !== null){
+     const scheduledTimeStamp = new Date(obj.scheduledTime).getTime();
+     if(nowTime >= scheduledTimeStamp){
+      obj.status = 'done'
+      saveChangesToLocalStorage()
+      renderTransactions()
+      updateDashboardCards()
+     }else{
+      const timeDiff = scheduledTimeStamp - nowTime
+      const hours = Math.floor(timeDiff / (1000 * 60 * 60))
+      const mins = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60))
+      const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000)
+      
+      const transactionCard = document.getElementById(`transaction-${obj.id}`);
+      if (transactionCard) {
+       const countdownEl = transactionCard.querySelector('.countdown-timer');
+       if (countdownEl) {
+        countdownEl.textContent = `⏳ ${hours}h ${mins}m ${seconds}s left`;
+       }
+      }
+     }
+    }
+   })
+  }, 1000)
+ }
+
+
+
+
 
 // feat: update dashboard cards
 // here's what this code will do
@@ -210,7 +268,12 @@ function loadSavedTransactions(){
   if(getSavedTransactions){
     transactions = getSavedTransactions
     renderTransactions();
-    updateDashboardCards(); // bug happening cause
+    updateDashboardCards(); // bug happening cause of this
+    // bug: updateDashboard doesnt persists -> will solve after voice commands
+    // lets analyze why this is happening
+    // we are saving the transactions inside the local storage and when page loads we are calling the saved history
+    // then inisde savedlocalstorage we are rendering the msg changes 
+    // and also render the dashboards cards count by calling updateDashboardcards
   }
 }
 
@@ -345,9 +408,7 @@ function speakBalance(){
   window.speechSynthesis.speak(utterance)
 }
 
-// bug: updateDashboard doesnt persists -> will solve after voice commands
-// lets analyze why this is happening
-// we are saving the transactions inside the local storage and when page loads we are calling the saved history
-// then inisde savedlocalstorage we are rendering the msg changes 
-// and also render the dashboards cards count by calling updateDashboardcards
+
+
+
 
