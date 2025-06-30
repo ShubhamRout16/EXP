@@ -113,6 +113,8 @@ function addTransaction(event){
 
   // update the dashboard cards after every addition
   updateDashboardCards();
+
+  renderAutopayTransactions();
 }
 
 // feat: to remove the added transaction from the recent transactions
@@ -129,6 +131,7 @@ function deleteTransaction(id){
   renderTransactions();
   // update the dashboard cards after every deletion
   updateDashboardCards();
+  renderAutopayTransactions();
 }
 
 // feat: render the recent transactions list to show any changes made in the previous transactions list
@@ -203,7 +206,7 @@ function autoPayCountdown(){
       saveChangesToLocalStorage()
       renderTransactions()
       updateDashboardCards()
-
+      renderAutopayTransactions()
       // highlight the changed transaction
       const changedCard = document.getElementById(`transaction-${obj.id}`);
       if (changedCard) {
@@ -417,6 +420,53 @@ function speakBalance(){
 }
 
 
+// feat: scheduling autopay 
+// manual additon done 
+// voice additon {pending}
+// notification section {pending}
+// footer {pending}
+// header {pending}
+// add the copy of autopay to autopay tab {pending}
 
 
-
+function renderAutopayTransactions(){
+  // clears the autopayList container
+  const autopayContainer = document.getElementById('autopay-list')
+  autopayContainer.innerHTML = ''
+  transactions.forEach(obj => {
+    if(obj.scheduledTime !== null && obj.status === 'pending'){
+      const indiTransactionDiv = document.createElement('div')
+      indiTransactionDiv.className = 'transaction-card fade-in'
+      indiTransactionDiv.id = `transaction-${obj.id}`
+      indiTransactionDiv.innerHTML = `
+      <div class="transaction-card-left">
+     <span class="transaction-type-badge ${obj.type.toLowerCase()}">
+      ${obj.type}
+     </span>
+     <div class="transaction-details">
+      <h3 class="transaction-category">${obj.category}</h3>
+      <div class="transaction-meta">
+       <span class="transaction-date">${obj.date}</span>
+       <div class="meta-separator"></div>
+       <span class="transaction-status ${obj.status.toLowerCase()}">${obj.status}</span>
+      </div>
+      ${
+       obj.status === "pending"
+       ? `<div class="countdown-timer">⏳ calculating...</div>`
+       : ""
+      }
+     </div>
+    </div>
+    <div class="transaction-card-right">
+     <span class="transaction-amount ${obj.type.toLowerCase()}">
+      ${obj.type.toLowerCase() === 'expense' ? '-' : '+'}₹${obj.amount}
+     </span>
+     <button class="transaction-delete-btn" onclick="deleteTransaction(${obj.id})">
+      Delete
+     </button>
+    </div>
+   `
+   autopayContainer.appendChild(indiTransactionDiv);
+    }
+  })
+}
