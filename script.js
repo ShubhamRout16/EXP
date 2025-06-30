@@ -154,6 +154,7 @@ function renderTransactions(){
   transactions.forEach(obj => {
    const indiTransactionDiv = document.createElement('div')
    indiTransactionDiv.className = 'transaction-card fade-in'
+   indiTransactionDiv.id = `transaction-${obj.id}`
    indiTransactionDiv.innerHTML = `
     <div class="transaction-card-left">
      <span class="transaction-type-badge ${obj.type.toLowerCase()}">
@@ -202,6 +203,15 @@ function autoPayCountdown(){
       saveChangesToLocalStorage()
       renderTransactions()
       updateDashboardCards()
+
+      // highlight the changed transaction
+      const changedCard = document.getElementById(`transaction-${obj.id}`);
+      if (changedCard) {
+        changedCard.classList.add('status-done-animate');
+        setTimeout(() => {
+          changedCard.classList.remove('status-done-animate');
+        }, 1500);
+      }
      }else{
       const timeDiff = scheduledTimeStamp - nowTime
       const hours = Math.floor(timeDiff / (1000 * 60 * 60))
@@ -220,8 +230,6 @@ function autoPayCountdown(){
    })
   }, 1000)
  }
-
-
 
 
 

@@ -1120,18 +1120,19 @@ body {
 .countdown-timer {
   font-family: 'Poppins', sans-serif;
   font-size: 0.75rem;
-  color: #f59e0b;
+  color: #CFCFCF; /* light gray text for good contrast */
   font-weight: 500;
   margin-top: 0.5rem;
   padding: 0.25rem 0.5rem;
-  background: rgba(245, 158, 11, 0.1);
+  background: #252525; /* dark gray background */
   border-radius: 6px;
-  border-left: 3px solid #f59e0b;
+  border-left: 3px solid #7D7D7D; /* medium gray accent border */
   display: flex;
   align-items: center;
   gap: 0.25rem;
   animation: pulse 2s infinite;
 }
+
 
 @keyframes pulse {
   0%, 100% {
@@ -1184,4 +1185,14 @@ body {
     margin-top: 0.25rem;
     padding: 0.15rem 0.35rem;
   }
+}
+
+.status-done-animate {
+  animation: doneFlash 1s ease-in-out;
+}
+
+@keyframes doneFlash {
+  0% { background-color: #f9c74f; }
+  50% { background-color: #90be6d; }
+  100% { background-color: inherit; }
 }
