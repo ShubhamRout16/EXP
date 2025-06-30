@@ -336,10 +336,6 @@ function startListening(){
     showTranscript.textContent = 'Could not understand, please try again.'
   }
 
-  recognition.onend = (e) => {
-
-  }
-
   recognition.start();
 }
 
@@ -354,3 +350,4 @@ function speakBalance(){
 // we are saving the transactions inside the local storage and when page loads we are calling the saved history
 // then inisde savedlocalstorage we are rendering the msg changes 
 // and also render the dashboards cards count by calling updateDashboardcards
+

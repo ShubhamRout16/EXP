@@ -25,6 +25,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  /* Add bottom margin to match the top spacing for symmetry */
+  margin-bottom: 5.5rem;
 }
 
 /* Header styles */
@@ -555,6 +557,8 @@ body {
 
   .container {
     gap: 1.5rem;
+    /* Adjust bottom margin for mobile */
+    margin-bottom: 4rem;
   }
 
   .header h1 {
