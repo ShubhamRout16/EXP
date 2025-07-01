@@ -29,6 +29,9 @@ const analytics = document.getElementById('analytics')
 const autopay = document.getElementById('autopay')
 const history = document.getElementById('history')
 function showTab(tabName){
+  if(tabName === 'analytics'){
+    renderCharts();
+  }
   // removed active class from all the buttons
   const tabsBtn = document.querySelectorAll('.tab-trigger')
   tabsBtn.forEach(btn => {
@@ -115,6 +118,9 @@ function addTransaction(event){
   updateDashboardCards();
 
   renderAutopayTransactions();
+
+  renderCharts();
+
 }
 
 // feat: to remove the added transaction from the recent transactions
@@ -132,6 +138,9 @@ function deleteTransaction(id){
   // update the dashboard cards after every deletion
   updateDashboardCards();
   renderAutopayTransactions();
+
+  renderCharts();
+
 }
 
 // feat: render the recent transactions list to show any changes made in the previous transactions list
@@ -299,6 +308,8 @@ function loadSavedTransactions(){
     // then inisde savedlocalstorage we are rendering the msg changes 
     // and also render the dashboards cards count by calling updateDashboardcards
   }
+  renderCharts();
+
 }
 
 // feat: voice command functionality
@@ -446,13 +457,13 @@ function speakBalance(){
 }
 
 
-// feat: scheduling autopay 
+// feat: scheduling autopay ✅
 // manual additon  ✅
 // voice additon {pending} ✅
 //  - voice command to add autopay ✅
 //  - cancel an autopay ✅
 // notification section {pending}
-// footer {pending}
+// footer {pending} ✅
 // header {pending}
 // add the copy of autopay to autopay tab {pending}✅
 
@@ -728,4 +739,78 @@ function cancelVoiceAutoPay(transcript){
       })
     }
   })
+}
+
+// feat: charts for both income and expenses
+
+function calculateCategorySums(type){
+  const categorySums = {}
+  transactions
+  .filter(obj => obj.type === type)
+  .forEach(obj => {
+    if(!categorySums[obj.category]){
+      categorySums[obj.category] = 0
+    }
+    categorySums[obj.category] += Number(obj.amount)
+  })
+  return categorySums;
+}
+
+
+// store globally
+let incomeChartInstance;
+let expenseChartInstance;
+
+function renderCharts(){
+  const incomeData = calculateCategorySums('income')
+  const expenseData = calculateCategorySums('expense')
+
+  const incomeChart = document.getElementById('incomeChart').getContext('2d')
+  const expenseChart = document.getElementById('expenseChart').getContext('2d')
+
+  // destroy previous chart if it exists
+  if (incomeChartInstance) {
+    incomeChartInstance.destroy();
+  }
+  if (expenseChartInstance) {
+    expenseChartInstance.destroy();
+  }
+
+  incomeChartInstance = new Chart(incomeChart , {
+    type: 'pie',
+    data: {
+      labels: Object.keys(incomeData),
+      datasets: [{
+        data: Object.values(incomeData),
+        backgroundColor: [
+          '#4CAF50', '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800'
+        ]
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {position: 'bottom'}
+      }
+    }
+  });
+
+  expenseChartInstance = new Chart(expenseChart, {
+    type: 'pie',
+    data: {
+      labels: Object.keys(expenseData),
+      datasets: [{
+        data: Object.values(expenseData),
+        backgroundColor: [
+          '#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5', '#2196F3'
+        ]
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom' }
+      }
+    }
+  });
 }

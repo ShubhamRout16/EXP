@@ -180,18 +180,19 @@
           <div class="tab-placeholder">
             <h3>Analytics Dashboard</h3>
             <p>View your spending patterns and financial insights here</p>
-            <div class="analytics-charts">
-              <div class="chart-placeholder">
-                <h4>Monthly Spending</h4>
-                <div class="chart-mock">📊 Chart will be displayed here</div>
+            <div class="analytics-charts" style="display: flex; flex-wrap: wrap; gap: 20px;">
+              <div class="chart-placeholder" style="flex: 1; min-width: 300px;">
+                <h4>Income by Category</h4>
+                <canvas id="incomeChart"></canvas>
               </div>
-              <div class="chart-placeholder">
-                <h4>Category Breakdown</h4>
-                <div class="chart-mock">🥧 Pie chart will be displayed here</div>
+              <div class="chart-placeholder" style="flex: 1; min-width: 300px;">
+                <h4>Expenses by Category</h4>
+                <canvas id="expenseChart"></canvas>
               </div>
             </div>
           </div>
         </div>
+        
 
         <!-- Auto Pay Tab -->
         <div id="autopay" class="tab-content">
@@ -237,6 +238,7 @@
     Made with <span class="footer-heart">❤️</span> by Shubham Rout
   </p>
 </footer>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="script.js"></script>
 </body>
 </html>
