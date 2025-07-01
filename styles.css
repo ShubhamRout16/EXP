@@ -1196,3 +1196,72 @@ body {
   50% { background-color: #90be6d; }
   100% { background-color: inherit; }
 }
+/* Footer Styles */
+.footer {
+  background: linear-gradient(135deg, #1a1a1a, #0d0d0d);
+  color: #cfcfcf;
+  text-align: center;
+  padding: 0.75rem 1rem;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 400;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.footer-text {
+  margin: 0;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+.footer-text:hover {
+  opacity: 1;
+}
+.footer-heart {
+  color: #dc2626;
+  font-size: 1rem;
+  animation: heartbeat 2s ease-in-out infinite;
+  display: inline-block;
+  margin: 0 0.25rem;
+}
+@keyframes heartbeat {
+  0% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(1.1);
+  }
+  28% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.1);
+  }
+  70% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+/* Responsive footer */
+@media (max-width: 768px) {
+  .footer {
+    padding: 0.625rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+  
+  .footer-heart {
+    font-size: 0.875rem;
+  }
+}
+@media (max-width: 480px) {
+  .footer {
+    padding: 0.5rem;
+    font-size: 0.75rem;
+  }
+  
+  .footer-heart {
+    font-size: 0.8125rem;
+  }
+}
