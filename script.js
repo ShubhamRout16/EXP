@@ -444,7 +444,7 @@ function speakBalance(){
 // feat: scheduling autopay 
 // manual additon  ✅
 // voice additon {pending}
-//  - voice command to add autopay
+//  - voice command to add autopay ✅
 //  - cancel an autopay
 // notification section {pending}
 // footer {pending}
