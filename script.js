@@ -341,6 +341,11 @@ function startListening(){
       handleVoiceAutoPay(transcript);
     }
 
+    // delete the autopay 
+    if(transcript.toLowerCase().includes('cancel auto pay') || transcript.toLowerCase().includes('delete autopay') || transcript.toLowerCase().includes('cancel autopay') || transcript.toLowerCase().includes('delete auto pay') ){
+      cancelVoiceAutoPay(transcript);
+    }
+
     // parse commands
     else if(transcript.includes('add income') || transcript.includes('add expense')){
       const parts = transcript.toLowerCase().split(' '); // returns array
@@ -682,4 +687,44 @@ function formatScheduledTime(isoString) {
     minute: '2-digit',
     hour12: true
   });
+}
+
+
+// feat : to cancel autopay/ delete it
+// why ? -> earlier we made delete transaction command -> 'delete transaction number 1/2/3/4...'
+// but this doesnt works so we have to make a new voice command to cancel autopay 
+
+function cancelVoiceAutoPay(transcript){
+  // after cancel autopay user might say
+  // by transaction number : 'cancel autopay number 2'
+  // by category : 'cancel autopay for transport'
+  // we have to extract number or category
+  let indexOfTransactions = null
+  let category = ''
+  let toDeleteItemId = ''
+  const words = transcript.toLowerCase().split(' ')
+  words.forEach((word,index) => {
+    if(word === 'number' || word === 'no'){
+      indexOfTransactions = Number(word[index+1])
+      if(!isNaN(indexOfTransactions) && transactions[indexOfTransactions]){
+        const foundObj = transactions[indexOfTransactions]
+        if(foundObj.status === 'pending' && foundObj.scheduledTime !== null){
+          toDeleteItemId = foundObj.id
+          deleteTransaction(toDeleteItemId)
+          console.log(`cancelled autopay for transaction #${indexOfTransactions}`);
+        }
+      }
+    }
+    else if(word === 'for'){
+      // collect everything after 'for'
+      category = words.slice(index + 1).join(' ');
+      transactions.forEach(obj => {
+        if(obj.category.toLowerCase() === category && obj.status === 'pending' && obj.scheduledTime !== null){
+          toDeleteItemId = obj.id
+          deleteTransaction(toDeleteItemId)
+          console.log(`cancelled autopay for category ${category}`);
+        }
+      })
+    }
+  })
 }
