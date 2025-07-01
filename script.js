@@ -200,7 +200,20 @@ function autoPayCountdown(){
    const nowTime = Date.now()
    transactions.forEach(obj => {
     if(obj.status === 'pending' && obj.scheduledTime !== null){
-     const scheduledTimeStamp = new Date(obj.scheduledTime).getTime();
+      const scheduledDate = new Date(obj.scheduledTime);
+      if (isNaN(scheduledDate.getTime())) {
+        // handle invalid
+        const transactionCard = document.getElementById(`transaction-${obj.id}`);
+        if (transactionCard) {
+          const countdownEl = transactionCard.querySelector('.countdown-timer');
+          if (countdownEl) {
+            countdownEl.textContent = '⏳ Invalid scheduled time';
+          }
+        }
+        return;
+      }
+      const scheduledTimeStamp = scheduledDate.getTime();
+      
      if(nowTime >= scheduledTimeStamp){
       obj.status = 'done'
       saveChangesToLocalStorage()
@@ -313,6 +326,9 @@ function startListening(){
   const showTranscript = document.getElementById('transcript')
   const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
   
+  // voice commands for autopay features
+  // adding a autopay 
+  // deleting a autopay
   recognition.onresult = (e) => {
     transcript = e.results[0][0].transcript;
     showTranscript.innerHTML = `
@@ -320,8 +336,13 @@ function startListening(){
     `
     console.log(`user says : ${transcript}`);
 
+    // handle voice autopay commands
+    if(transcript.toLowerCase().includes('schedule autopay') || transcript.toLowerCase().includes('schedule auto pay')){
+      handleVoiceAutoPay(transcript);
+    }
+
     // parse commands
-    if(transcript.includes('add income') || transcript.includes('add expense')){
+    else if(transcript.includes('add income') || transcript.includes('add expense')){
       const parts = transcript.toLowerCase().split(' '); // returns array
       // extract type , amount and category from the parts
       parts.forEach((words , index) => {
@@ -421,12 +442,14 @@ function speakBalance(){
 
 
 // feat: scheduling autopay 
-// manual additon done 
+// manual additon  ✅
 // voice additon {pending}
+//  - voice command to add autopay
+//  - cancel an autopay
 // notification section {pending}
 // footer {pending}
 // header {pending}
-// add the copy of autopay to autopay tab {pending}
+// add the copy of autopay to autopay tab {pending}✅
 
 
 function renderAutopayTransactions(){
@@ -469,4 +492,194 @@ function renderAutopayTransactions(){
    autopayContainer.appendChild(indiTransactionDiv);
     }
   })
+}
+
+
+// function to handle voice auto pay functionality
+function handleVoiceAutoPay(transcript){
+  const showTranscript = document.getElementById('transcript')
+
+  try {
+    // parse the voice commands to extract amount category and time
+    const parsed = parseAutoPayCommand(transcript)
+
+    if (!parsed.amount || !parsed.category || !parsed.scheduledTime) {
+      showTranscript.innerHTML = `<p style="color: red;">Could not parse autopay command. Please try: "Schedule autopay [amount] for [category] on [date] [time]"</p>`;
+      return;
+    }
+
+    // Create autopay transaction
+    const autopayTransaction = {
+      id: Date.now(),
+      type: 'expense', // Autopay is typically for expenses
+      category: parsed.category,
+      amount: parsed.amount,
+      date: new Date().toISOString().split('T')[0], // Today's date
+      description: `Autopay scheduled via voice command`,
+      status: 'pending',
+      scheduledTime: parsed.scheduledTime
+    };
+
+    // Add to transactions array
+    transactions.push(autopayTransaction);
+    
+    // Save and update UI
+    saveChangesToLocalStorage();
+    renderTransactions();
+    updateDashboardCards();
+    renderAutopayTransactions();
+
+    // Voice feedback
+    const feedbackText = `Autopay scheduled: ${parsed.amount} rupees for ${parsed.category} on ${formatScheduledTime(parsed.scheduledTime)}`;
+    const utterance = new SpeechSynthesisUtterance(feedbackText);
+    window.speechSynthesis.speak(utterance);
+
+    showTranscript.innerHTML = `<p style="color: green;">✅ ${feedbackText}</p>`;
+    
+  } catch (error) {
+    console.error('Error parsing autopay command:', error);
+    showTranscript.innerHTML = `<p style="color: red;">Error scheduling autopay. Please try again.</p>`;
+  }
+}
+
+// function to parse auto pay commands and return the amount category and time
+function parseAutoPayCommand(transcript){
+  const words = transcript.toLowerCase().split(' ')
+
+  // to extract the amount from the transcript
+  let amount = null;
+  words.forEach(word => {
+    if(!isNaN(word) && word !== '' && amount === null){
+      amount = Number(word)
+    }
+  })
+
+  // to extract the category 
+  let category = null;
+  words.forEach((word,index) => {
+    if(word === 'for' && words[index+1] && category === null){
+      category = words[index+1]
+    }
+  })
+
+
+  // extract date and time -> using the function to completely all versions of time
+  const scheduledTime = parseDateTime(transcript.toLowerCase())
+
+  return {
+    amount,
+    category,
+    scheduledTime
+  }
+}
+
+// function to completely extract time -> year , month , date and time
+function parseDateTime(transcript){
+  const months = {
+    'january': 0, 'jan': 0,
+    'february': 1, 'feb': 1,
+    'march': 2, 'mar': 2,
+    'april': 3, 'apr': 3,
+    'may': 4,
+    'june': 5, 'jun': 5,
+    'july': 6, 'jul': 6,
+    'august': 7, 'aug': 7,
+    'september': 8, 'sep': 8,
+    'october': 9, 'oct': 9,
+    'november': 10, 'nov': 10,
+    'december': 11, 'dec': 11
+  }
+  const currentYear = new Date().getFullYear();
+  let targetDate = new Date();
+
+  // handling today , tommorow and month case
+  if(transcript.includes('today')){
+    targetDate = new Date();
+  }else if(transcript.includes('tomorrow')){
+    targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + 1)
+  }
+
+
+  // split the transcript to find month and day
+  const words = transcript.toLowerCase().split(' ')
+
+  let day = null;
+  let month = null;
+
+  words.forEach(word => {
+    // cleaning the transcript and removing words like 1st , 2nd , 3rd , 4th
+    const cleanWord = word.replace(/st|nd|rd|th/g, '');
+
+    // check if its day(number)
+    if(!isNaN(cleanWord) && cleanWord >= 1 && cleanWord <= 31){ // numbers of day in month
+      day = Number(cleanWord)
+    }
+
+    // check if its month name
+   if(months[cleanWord.toLowerCase()]){
+      month = months[cleanWord.toLowerCase()]
+    }
+
+   if(day && month !== null){
+      targetDate = new Date(currentYear , month , day);
+
+      if(targetDate < new Date()){
+        targetDate.setFullYear(currentYear + 1)
+      }
+    }
+  })
+
+  // handling time parsing
+  let hour = 12
+  let minute = 0
+
+  words.forEach(word => {
+    if(word.includes('pm') || word.includes('am')){
+      const isPM = word.includes('pm')
+      const cleanTime = word.replace('pm','').replace('am','');
+
+      if (cleanTime.includes(':')) {
+        // Handle "5:30pm" format
+        const timeParts = cleanTime.split(':');
+        hour = Number(timeParts[0]);
+        minute = Number(timeParts[1]);
+      } else {
+        // Handle "5pm" format
+        hour = Number(cleanTime);
+        minute = 0;
+      }
+
+      // Convert to 24-hour format
+      if (isPM && hour !== 12) {
+        hour += 12;
+      } else if (!isPM && hour === 12) {
+        hour = 0;
+      }
+
+      else if(!isNaN(word) && Number(word) >= 1 && Number(word) <= 24){
+        const possibleHour = Number(word)
+        if(!transcript.includes('am') && !transcript.includes('pm')){
+          hour = possibleHour
+        }
+      }
+      
+    }
+  })
+
+  targetDate.setHours(hour , minute , 0 , 0)
+  return targetDate.toISOString();
+
+}
+
+// NEW: Function to format scheduled time for display
+function formatScheduledTime(isoString) {
+  const date = new Date(isoString);
+  return date.toLocaleString('en-IN', {
+    day: 'numeric',
+    month: 'long',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  });
 }
