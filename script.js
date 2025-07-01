@@ -741,7 +741,7 @@ function cancelVoiceAutoPay(transcript){
   })
 }
 
-// feat: charts for both income and expenses
+// feat: charts for both income and expenses✅
 
 function calculateCategorySums(type){
   const categorySums = {}
