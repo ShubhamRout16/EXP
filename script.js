@@ -703,16 +703,19 @@ function cancelVoiceAutoPay(transcript){
   let category = ''
   let toDeleteItemId = ''
   const words = transcript.toLowerCase().split(' ')
+
+  // cancel autopay by number not working because it traverses through the whole transactions list instead of traversing through only pending lists
+  const pendingTransactions = transactions.filter(obj => (obj.status === 'pending' && obj.scheduledTime !== null))
+
   words.forEach((word,index) => {
     if(word === 'number' || word === 'no'){
-      indexOfTransactions = Number(word[index+1])
-      if(!isNaN(indexOfTransactions) && transactions[indexOfTransactions]){
-        const foundObj = transactions[indexOfTransactions]
-        if(foundObj.status === 'pending' && foundObj.scheduledTime !== null){
-          toDeleteItemId = foundObj.id
-          deleteTransaction(toDeleteItemId)
-          console.log(`cancelled autopay for transaction #${indexOfTransactions}`);
-        }
+      indexOfTransactions = Number(words[index + 1]) - 1;
+      if(!isNaN(indexOfTransactions) && indexOfTransactions >= 0 && indexOfTransactions < pendingTransactions.length){
+        const foundObj = pendingTransactions[indexOfTransactions]
+        toDeleteItemId = foundObj.id
+        deleteTransaction(toDeleteItemId);
+        console.log(`cancelled autopay for transaction number ${indexOfTransactions}`);
+        
       }
     }
     else if(word === 'for'){
