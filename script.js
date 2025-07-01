@@ -448,9 +448,9 @@ function speakBalance(){
 
 // feat: scheduling autopay 
 // manual additon  ✅
-// voice additon {pending}
+// voice additon {pending} ✅
 //  - voice command to add autopay ✅
-//  - cancel an autopay
+//  - cancel an autopay ✅
 // notification section {pending}
 // footer {pending}
 // header {pending}
@@ -690,8 +690,8 @@ function formatScheduledTime(isoString) {
 }
 
 
-// feat : to cancel autopay/ delete it
-// why ? -> earlier we made delete transaction command -> 'delete transaction number 1/2/3/4...'
+// feat : to cancel autopay/ delete it ✅
+// why ? -> earlier we made delete transaction command -> 'delete transaction number 1/2/3/4...' 
 // but this doesnt works so we have to make a new voice command to cancel autopay 
 
 function cancelVoiceAutoPay(transcript){
@@ -704,6 +704,7 @@ function cancelVoiceAutoPay(transcript){
   let toDeleteItemId = ''
   const words = transcript.toLowerCase().split(' ')
 
+
   // cancel autopay by number not working because it traverses through the whole transactions list instead of traversing through only pending lists
   const pendingTransactions = transactions.filter(obj => (obj.status === 'pending' && obj.scheduledTime !== null))
 
@@ -713,9 +714,7 @@ function cancelVoiceAutoPay(transcript){
       if(!isNaN(indexOfTransactions) && indexOfTransactions >= 0 && indexOfTransactions < pendingTransactions.length){
         const foundObj = pendingTransactions[indexOfTransactions]
         toDeleteItemId = foundObj.id
-        deleteTransaction(toDeleteItemId);
-        console.log(`cancelled autopay for transaction number ${indexOfTransactions}`);
-        
+        deleteTransaction(toDeleteItemId)
       }
     }
     else if(word === 'for'){
@@ -725,7 +724,6 @@ function cancelVoiceAutoPay(transcript){
         if(obj.category.toLowerCase() === category && obj.status === 'pending' && obj.scheduledTime !== null){
           toDeleteItemId = obj.id
           deleteTransaction(toDeleteItemId)
-          console.log(`cancelled autopay for category ${category}`);
         }
       })
     }

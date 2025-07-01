@@ -79,6 +79,18 @@ The app will confirm it for you by voice.
 
 ---
 
+## ✅ Cancel Voice Autopay
+
+You can cancel schedule autopay by saying:
+
+| **Voice Command** | **What It Does** |
+|-------------------|------------------|
+| *Cancel autopay number 2* | Cancels the second pending autopay transaction (based on its position in the pending list) |
+| *Cancel autopay for food* | Cancels any pending autopay transactions in the "food" category |
+
+
+---
+
 ## ✅ Saving Your Data
 
 All your transactions are saved in your browser. When you close and reopen the app, your data will still be there — no need to redo your entries.
