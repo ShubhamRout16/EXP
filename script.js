@@ -196,10 +196,10 @@ function renderHistory(){
       <h3>Transaction History</h3>
       <p>View all your past transactions and export data</p>
       <div class="history-filters">
-        <button class="filter-button" id="filter30d">Last 30 Days</button>
-        <button class="filter-button" id="filter3m">Last 3 Months</button>
-        <button class="filter-button" id="filter1y">Last Year</button>
-        <button class="filter-button" id="filterCsv">Export CSV</button>
+        <button class="filter-button" id="filter30d" onclick="filterByDate('30d')">Last 30 Days</button>
+        <button class="filter-button" id="filter3m" onclick="filterByDate('3m')">Last 3 Months</button>
+        <button class="filter-button" id="filter1y" onclick="filterByDate('1y')">Last Year</button>
+        <button class="filter-button" id="filterCsv" onclick="csvExpo()">Export CSV</button>
       </div>
       <div id="history-list" class="history-list"></div>
     </div>
@@ -947,7 +947,7 @@ function renderCharts(){
 
 // feat: to add a filter of of 30day , 3months , 1year and export as a csv
 function filterByDate(date){
-  const allTransactions = JSON.parse(localStorage.getItem('transactions')) || []
+  const allTransactions = JSON.parse(localStorage.getItem('savedTransactions')) || []
   const now = new Date()
   let filtered = allTransactions;
   if(date === '30d'){
@@ -974,3 +974,33 @@ function filterByDate(date){
   renderHistory(filtered)
 }
 
+// function to export csv file for transactions
+function csvExpo(){
+  const allTransactions = JSON.parse(localStorage.getItem('savedTransactions')) || []
+  if(allTransactions.length === 0){
+    alert('no transactions to export')
+    return;
+  }
+
+  let csvContent = "data:text/csv;charset=utf-8,";
+  csvContent += "Type,Amount,Category,Date,Deleted\n";
+
+  allTransactions.forEach(obj => {
+    const row = [
+      obj.type,
+      obj.amount,
+      obj.category,
+      obj.date,
+      obj.deleted ? 'yes' : 'no'
+    ].join(",")
+    csvContent += row + "\n"
+  })
+
+  const encodeUri = encodeURI(csvContent)
+  const link = document.createElement('a')
+  link.setAttribute('href',encodeUri)
+  link.setAttribute('download','transaction_history.csv')
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
