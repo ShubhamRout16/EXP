@@ -246,10 +246,11 @@
             <h3>Transaction History</h3>
             <p>View all your past transactions and export data</p>
             <div class="history-filters">
-              <button class="filter-button">Last 30 Days</button>
-              <button class="filter-button">Last 3 Months</button>
-              <button class="filter-button">Last Year</button>
-              <button class="filter-button">Export CSV</button>
+              <!-- input to search by category -->
+              <button class="filter-button" id="filter30d" onclick="filterByDate('30d')">Last 30 Days</button>
+              <button class="filter-button" id="filter3m" onclick="filterByDate('3m')">Last 3 Months</button>
+              <button class="filter-button" id="filter1y" onclick="filterByDate('1y')">Last Year</button>
+              <button class="filter-button" id="filterCsv">Export CSV</button>
             </div>
           </div>
         </div>

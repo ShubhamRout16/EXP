@@ -196,10 +196,10 @@ function renderHistory(){
       <h3>Transaction History</h3>
       <p>View all your past transactions and export data</p>
       <div class="history-filters">
-        <button class="filter-button">Last 30 Days</button>
-        <button class="filter-button">Last 3 Months</button>
-        <button class="filter-button">Last Year</button>
-        <button class="filter-button">Export CSV</button>
+        <button class="filter-button" id="filter30d">Last 30 Days</button>
+        <button class="filter-button" id="filter3m">Last 3 Months</button>
+        <button class="filter-button" id="filter1y">Last Year</button>
+        <button class="filter-button" id="filterCsv">Export CSV</button>
       </div>
       <div id="history-list" class="history-list"></div>
     </div>
@@ -255,6 +255,7 @@ function renderHistory(){
     historyList.appendChild(item);
 })
 }
+
 
 
 // feat: render the recent transactions list to show any changes made in the previous transactions list ✅
@@ -943,4 +944,33 @@ function renderCharts(){
 // 5 -> show a search box to filter through category
 // 6 -> delete task should not be shown in the history -> its task should solely to only show previous transactions made either delted or not ✅
 // 7 -> persistaance of the previously stored history data using -> localStorage ✅
+
+// feat: to add a filter of of 30day , 3months , 1year and export as a csv
+function filterByDate(date){
+  const allTransactions = JSON.parse(localStorage.getItem('transactions')) || []
+  const now = new Date()
+  let filtered = allTransactions;
+  if(date === '30d'){
+    // making a copy of todays date 
+    const past = new Date(now);
+    // todays date - 30 -> will give a starting date
+    past.setDate(now.getDate() - 30)
+    // traversing through all transactions array and checking each object if date is greater than or equal to our start and if true include them in filtered
+    filtered = allTransactions.filter(obj => new Date(obj.date) >= past)
+  }
+
+  if(date === '3m'){
+    const past = new Date(now)
+    past.setDate(now.getMonth() - 3)
+    filtered = allTransactions.filter(obj => new Date(obj.date) >= past)
+  }
+
+  if(date === '1y'){
+    const past = new Date(now)
+    past.setDate(now.getFullYear() - 1)
+    filtered - allTransactions.filter(obj => new Date(obj.date) >= past)
+  }
+
+  renderHistory(filtered)
+}
 
