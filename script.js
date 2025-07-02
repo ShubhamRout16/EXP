@@ -187,7 +187,7 @@ function deleteTransaction(id){
 // 3 -> remove delete buttons
 // 4 -> show deleted tag for deleted items
 
-function renderHistory(){
+function renderHistory(filteredTransactions = null){
   const historyContainer = document.getElementById('history')
 
   // Clear previous content
@@ -199,6 +199,7 @@ function renderHistory(){
         <button class="filter-button" id="filter30d" onclick="filterByDate('30d')">Last 30 Days</button>
         <button class="filter-button" id="filter3m" onclick="filterByDate('3m')">Last 3 Months</button>
         <button class="filter-button" id="filter1y" onclick="filterByDate('1y')">Last Year</button>
+        <button class="filter-button" id="filterall" onclick="filterByDate('all')">All</button>
         <button class="filter-button" id="filterCsv" onclick="csvExpo()">Export CSV</button>
       </div>
       <div id="history-list" class="history-list"></div>
@@ -207,7 +208,11 @@ function renderHistory(){
 
   const historyList = historyContainer.querySelector('#history-list')
 
-  if(History.length === 0){
+  // use filtered data to show if provided otherwise use all history
+  const dataToShow = filteredTransactions !== null ? filteredTransactions : History
+
+
+  if(dataToShow.length === 0){
     historyList.innerHTML = `
       <div class="no-transactions-message">
         <p>No transaction history found.</p>
@@ -217,7 +222,7 @@ function renderHistory(){
   }
 
   // lets add reverse chronological order
-  const reversedHistory = [...History].sort((a,b) => b.id - a.id); // sorts the copied array in descending order
+  const reversedHistory = [...dataToShow].sort((a,b) => b.id - a.id); // sorts the copied array in descending order
   console.log(History);
   
   // console.log(reversedHistory);
@@ -254,6 +259,13 @@ function renderHistory(){
     `;
     historyList.appendChild(item);
 })
+
+// show the count of the filtered results
+const countDisplay = document.createElement('div')
+countDisplay.className = 'filter-results-count'
+countDisplay.innerHTML = `<p>Showing ${reversedHistory.length} transaction${reversedHistory.length !== 1 ? 's' : ''}</p>`
+countDisplay.style.cssText = 'text-align: center; margin: 10px 0; color: #666; font-size: 14px;'
+historyList.insertBefore(countDisplay, historyList.firstChild)
 }
 
 
@@ -345,26 +357,26 @@ function autoPayCountdown(){
       updateDashboardCards()
       renderAutopayTransactions()
       // highlight the changed transaction
-      const changedCard = document.getElementById(`transaction-${obj.id}`);
-      if (changedCard) {
+      document.querySelectorAll(`#transaction-${obj.id}`).forEach(changedCard => {
         changedCard.classList.add('status-done-animate');
         setTimeout(() => {
           changedCard.classList.remove('status-done-animate');
         }, 1500);
-      }
+      });      
      }else{
       const timeDiff = scheduledTimeStamp - nowTime
       const hours = Math.floor(timeDiff / (1000 * 60 * 60))
       const mins = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60))
       const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000)
       
-      const transactionCard = document.getElementById(`transaction-${obj.id}`);
-      if (transactionCard) {
-       const countdownEl = transactionCard.querySelector('.countdown-timer');
-       if (countdownEl) {
-        countdownEl.textContent = `⏳ ${hours}h ${mins}m ${seconds}s left`;
-       }
-      }
+      // will look for the transaction card in BOTH tabs
+      const transactionCard = document.querySelectorAll(`#transaction-${obj.id}`);
+      transactionCard.forEach(card => {
+        const countdownEl = card.querySelector('.countdown-timer');
+        if (countdownEl) {
+          countdownEl.textContent = `⏳ ${hours}h ${mins}m ${seconds}s left`;
+        }
+      });
      }
     }
    })
@@ -956,21 +968,24 @@ function filterByDate(date){
     // todays date - 30 -> will give a starting date
     past.setDate(now.getDate() - 30)
     // traversing through all transactions array and checking each object if date is greater than or equal to our start and if true include them in filtered
-    filtered = allTransactions.filter(obj => new Date(obj.date) >= past)
+    filtered = allTransactions.filter(obj => (new Date(obj.date) >= past && new Date(obj.date) <= now))
   }
 
   if(date === '3m'){
     const past = new Date(now)
-    past.setDate(now.getMonth() - 3)
-    filtered = allTransactions.filter(obj => new Date(obj.date) >= past)
+    past.setMonth(now.getMonth() - 3)
+    filtered = allTransactions.filter(obj => (new Date(obj.date) >= past && new Date(obj.date) <= now))
   }
 
   if(date === '1y'){
     const past = new Date(now)
-    past.setDate(now.getFullYear() - 1)
-    filtered - allTransactions.filter(obj => new Date(obj.date) >= past)
+    past.setFullYear(now.getFullYear() - 1)
+    filtered = allTransactions.filter(obj => (new Date(obj.date) >= past && new Date(obj.date) <= now))
   }
 
+  if(date === all){
+    filtered = allTransactions
+  }
   renderHistory(filtered)
 }
 
