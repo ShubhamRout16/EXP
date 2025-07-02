@@ -307,6 +307,7 @@ function loadSavedTransactions(){
     // we are saving the transactions inside the local storage and when page loads we are calling the saved history
     // then inisde savedlocalstorage we are rendering the msg changes 
     // and also render the dashboards cards count by calling updateDashboardcards
+    renderAutopayTransactions(); // to show the only autopay transactions inside the autopay tab
   }
   renderCharts();
 
@@ -464,7 +465,7 @@ function speakBalance(){
 //  - cancel an autopay ✅
 // notification section {pending}
 // footer {pending} ✅
-// header {pending}
+// header {pending} ✅
 // add the copy of autopay to autopay tab {pending}✅
 
 
