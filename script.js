@@ -268,7 +268,28 @@ countDisplay.style.cssText = 'text-align: center; margin: 10px 0; color: #666; f
 historyList.insertBefore(countDisplay, historyList.firstChild)
 }
 
-
+// First, let's add a function to clean up any corrupted transaction data
+function sanitizeTransactions() {
+  transactions = transactions.filter(obj => {
+    // Remove any null or undefined transactions
+    if (!obj || typeof obj !== 'object') {
+      console.warn('Removing invalid transaction:', obj);
+      return false;
+    }
+    
+    // Ensure all required properties exist with defaults
+    obj.id = obj.id || Date.now() + Math.random();
+    obj.type = obj.type || 'income';
+    obj.category = obj.category || 'Uncategorized';
+    obj.amount = obj.amount || 0;
+    obj.date = obj.date || new Date().toISOString().split('T')[0];
+    obj.description = obj.description || '';
+    obj.status = obj.status || 'done';
+    obj.scheduledTime = obj.scheduledTime || null;
+    
+    return true;
+  });
+}
 
 // feat: render the recent transactions list to show any changes made in the previous transactions list ✅
 // here's what this feature will do 
@@ -277,12 +298,18 @@ historyList.insertBefore(countDisplay, historyList.firstChild)
 // creates a new div element for every object in the transactions array ✅
 // appends the new div to contianer ✅
 
+// Updated renderTransactions function with better error handling
 function renderTransactions(){
   const transactionsContainer = document.getElementById('transactions-list')
+  
+  // Sanitize transactions first
+  sanitizeTransactions();
+  
   // clearing the transactions container
   transactionsContainer.innerHTML = ''
+  
   // if there is no object in the transaction array then show the default text
-  if(transactions.length === 0){
+  if(!transactions || transactions.length === 0){
    transactionsContainer.innerHTML = `
     <div class="no-transactions-message">
      <p>No Transactions found</p>
@@ -290,41 +317,66 @@ function renderTransactions(){
    `
    return;
   }
-  transactions.forEach(obj => {
-   const indiTransactionDiv = document.createElement('div')
-   indiTransactionDiv.className = 'transaction-card fade-in'
-   indiTransactionDiv.id = `transaction-${obj.id}`
-   indiTransactionDiv.innerHTML = `
-    <div class="transaction-card-left">
-     <span class="transaction-type-badge ${obj.type.toLowerCase()}">
-      ${obj.type}
-     </span>
-     <div class="transaction-details">
-      <h3 class="transaction-category">${obj.category}</h3>
-      <div class="transaction-meta">
-       <span class="transaction-date">${obj.date}</span>
-       <div class="meta-separator"></div>
-       <span class="transaction-status ${obj.status.toLowerCase()}">${obj.status}</span>
-      </div>
-      ${
-       obj.status === "pending"
-       ? `<div class="countdown-timer">⏳ calculating...</div>`
-       : ""
+
+  transactions.forEach((obj, index) => {
+    try {
+      // Debug logging
+      if (!obj) {
+        console.error(`Transaction at index ${index} is null/undefined`);
+        return;
       }
-     </div>
-    </div>
-    <div class="transaction-card-right">
-     <span class="transaction-amount ${obj.type.toLowerCase()}">
-      ${obj.type.toLowerCase() === 'expense' ? '-' : '+'}₹${obj.amount}
-     </span>
-     <button class="transaction-delete-btn" onclick="deleteTransaction(${obj.id})">
-      Delete
-     </button>
-    </div>
-   `
-   transactionsContainer.appendChild(indiTransactionDiv);
+
+      const indiTransactionDiv = document.createElement('div')
+
+      // Safe property extraction with thorough null checks
+      const type = (obj.type && typeof obj.type === 'string') ? obj.type.toLowerCase() : 'income'
+      const typeDisplay = (obj.type && typeof obj.type === 'string') ? obj.type : 'Income'
+      const category = (obj.category && typeof obj.category === 'string') ? obj.category : 'Uncategorized'
+      const amount = (obj.amount && !isNaN(obj.amount)) ? Number(obj.amount) : 0
+      const date = (obj.date && typeof obj.date === 'string') ? obj.date : new Date().toISOString().split('T')[0]
+      const status = (obj.status && typeof obj.status === 'string') ? obj.status.toLowerCase() : 'done'
+      const statusDisplay = (obj.status && typeof obj.status === 'string') ? obj.status : 'Done'
+      const id = obj.id || Date.now()
+
+      indiTransactionDiv.className = 'transaction-card fade-in'
+      indiTransactionDiv.id = `transaction-${id}`
+      indiTransactionDiv.innerHTML = `
+      <div class="transaction-card-left">
+       <span class="transaction-type-badge ${type}">
+        ${typeDisplay}
+       </span>
+       <div class="transaction-details">
+        <h3 class="transaction-category">${category}</h3>
+        <div class="transaction-meta">
+         <span class="transaction-date">${date}</span>
+         <div class="meta-separator"></div>
+         <span class="transaction-status ${status}">${statusDisplay}</span>
+        </div>
+        ${
+         status === "pending"
+         ? `<div class="countdown-timer">⏳ calculating...</div>`
+         : ""
+        }
+       </div>
+      </div>
+      <div class="transaction-card-right">
+       <span class="transaction-amount ${type}">
+        ${type === 'expense' ? '-' : '+'}₹${amount.toFixed(2)}
+       </span>
+       <button class="transaction-delete-btn" onclick="deleteTransaction(${id})">
+        Delete
+       </button>
+      </div>
+      `
+
+      transactionsContainer.appendChild(indiTransactionDiv);
+      
+    } catch (error) {
+      console.error(`Error rendering transaction at index ${index}:`, error, obj);
+      // Skip this transaction and continue with the next one
+    }
   })
- }
+}
 
 // feat: adding autopay functionality
 // here's what this feature will do we will create autopay transaction 
@@ -390,25 +442,45 @@ function autoPayCountdown(){
 // everytime a transaction is added or deleted calculate the values are update in the dasjboard cards
 // and call this function everytime adding transactions or deleting it
 
+// Fixed updateDashboardCards function
 function updateDashboardCards(){
   // calculate the values for the dashboard cards
   let income = 0
   let expenses = 0
 
+  // Add safety checks
+  if (!transactions || !Array.isArray(transactions)) {
+    transactions = [];
+  }
+
   transactions.forEach(obj => {
-    if(obj.type === 'income'){
-      income += Number(obj.amount)
-    }else{
-      expenses += Number(obj.amount)
+    // Add comprehensive null checks
+    if (!obj || typeof obj !== 'object') {
+      return; // Skip invalid objects
     }
+    
+    const type = obj.type && typeof obj.type === 'string' ? obj.type.toLowerCase() : 'income';
+    const amount = obj.amount && !isNaN(obj.amount) ? Number(obj.amount) : 0;
+    
+    if(type === 'income'){
+      income += amount;
+    } else if(type === 'expense') {
+      expenses += amount;
+    }    
   })
 
   let balance = income - expenses;
 
-  document.querySelector('.summary-card[data-type="balance"] .summary-card-value').textContent = `₹${balance.toFixed(2)}`
-  document.querySelector('.summary-card[data-type="income"] .summary-card-value').textContent = `₹${income.toFixed(2)}`
-  document.querySelector('.summary-card[data-type="expenses"] .summary-card-value').textContent = `₹${expenses.toFixed(2)}`
-  document.querySelector('.summary-card[data-type="transactions"] .summary-card-value').textContent = transactions.length
+  // Add safety checks for DOM elements
+  const balanceCard = document.querySelector('.summary-card[data-type="balance"] .summary-card-value');
+  const incomeCard = document.querySelector('.summary-card[data-type="income"] .summary-card-value');
+  const expensesCard = document.querySelector('.summary-card[data-type="expenses"] .summary-card-value');
+  const transactionsCard = document.querySelector('.summary-card[data-type="transactions"] .summary-card-value');
+
+  if (balanceCard) balanceCard.textContent = `₹${balance.toFixed(2)}`;
+  if (incomeCard) incomeCard.textContent = `₹${income.toFixed(2)}`;
+  if (expensesCard) expensesCard.textContent = `₹${expenses.toFixed(2)}`;
+  if (transactionsCard) transactionsCard.textContent = transactions.length;
 }
 
 
@@ -422,22 +494,28 @@ function saveChangesToLocalStorage(){
   localStorage.setItem('savedTransactions', JSON.stringify(transactions))
 }
 
-// this function checks if there is any previously saved array and loads it
+// Updated loadSavedTransactions function with better error handling
 function loadSavedTransactions(){
-  const getSavedTransactions = JSON.parse(localStorage.getItem('savedTransactions'))
-  if(getSavedTransactions){
-    transactions = getSavedTransactions
-    renderTransactions();
-    updateDashboardCards(); // bug happening cause of this
-    // bug: updateDashboard doesnt persists -> will solve after voice commands
-    // lets analyze why this is happening
-    // we are saving the transactions inside the local storage and when page loads we are calling the saved history
-    // then inisde savedlocalstorage we are rendering the msg changes 
-    // and also render the dashboards cards count by calling updateDashboardcards
-    renderAutopayTransactions(); // to show the only autopay transactions inside the autopay tab
+  try {
+    const getSavedTransactions = JSON.parse(localStorage.getItem('savedTransactions') || '[]')
+    
+    if(Array.isArray(getSavedTransactions) && getSavedTransactions.length > 0){
+      transactions = getSavedTransactions
+      
+      // Sanitize the loaded data
+      sanitizeTransactions()
+      
+      renderTransactions();
+      updateDashboardCards();
+      renderAutopayTransactions();
+    }
+    renderCharts();
+  } catch (error) {
+    console.error('Error loading saved transactions:', error);
+    // Reset to empty array if localStorage is corrupted
+    transactions = [];
+    localStorage.removeItem('savedTransactions');
   }
-  renderCharts();
-
 }
 
 // feat: voice command functionality
@@ -459,7 +537,7 @@ function startListening(){
   let type = ''
   let amount = 0
   let category = ''
-  const today = new Date();
+  const today = new Date().toLocaleDateString();
   let toBeDeleted = 0;
   // this part shows what we are speaking is understood by browser
   const showTranscript = document.getElementById('transcript')
@@ -478,15 +556,21 @@ function startListening(){
     // handle voice autopay commands
     if(transcript.toLowerCase().includes('schedule autopay') || transcript.toLowerCase().includes('schedule auto pay')){
       handleVoiceAutoPay(transcript);
+      return
     }
 
     // delete the autopay 
     if(transcript.toLowerCase().includes('cancel auto pay') || transcript.toLowerCase().includes('delete autopay') || transcript.toLowerCase().includes('cancel autopay') || transcript.toLowerCase().includes('delete auto pay') ){
       cancelVoiceAutoPay(transcript);
+      return
     }
 
     // parse commands
     else if(transcript.includes('add income') || transcript.includes('add expense')){
+      type = ''
+      amount = 0
+      category = ''
+
       const parts = transcript.toLowerCase().split(' '); // returns array
       // extract type , amount and category from the parts
       parts.forEach((words , index) => {
@@ -497,16 +581,25 @@ function startListening(){
           amount = Number(words)
         }
         else if(words === 'for'){
-          category = parts[index+1] 
+          category = parts[index+1] || ''
         }
       })
       
+      if(!category){
+        category = parts[parts.length - 1]
+      }
+
+      if (!type || isNaN(amount) || amount <= 0 || !category) {
+        showTranscript.textContent = `Sorry, could not understand. Please say like "add income of 5000 for salary".`;
+        return;
+      }
+
       let voiceTransactionObj = {
         id: Date.now(),
         type: type,
         category: category,
         amount: amount,
-        date: today.toLocaleDateString(),
+        date: today,
       }
 
       transactions.push(voiceTransactionObj)
@@ -600,35 +693,45 @@ function renderAutopayTransactions(){
   // clears the autopayList container
   const autopayContainer = document.getElementById('autopay-list')
   autopayContainer.innerHTML = ''
+  
   transactions.forEach(obj => {
-    if(obj.scheduledTime !== null && obj.status === 'pending'){
+    // Add comprehensive null checks
+    const scheduledTime = obj.scheduledTime || null
+    const status = (obj.status || 'done').toLowerCase()
+    const type = (obj.type || 'income').toLowerCase()
+    const category = obj.category || 'Uncategorized'
+    const amount = obj.amount || 0
+    const date = obj.date || new Date().toISOString().split('T')[0]
+    const id = obj.id || Date.now()
+    
+    if(scheduledTime !== null && status === 'pending'){
       const indiTransactionDiv = document.createElement('div')
       indiTransactionDiv.className = 'transaction-card fade-in'
-      indiTransactionDiv.id = `transaction-${obj.id}`
+      indiTransactionDiv.id = `transaction-${id}`
       indiTransactionDiv.innerHTML = `
       <div class="transaction-card-left" style="text-align: left;">
-     <span class="transaction-type-badge ${obj.type.toLowerCase()}">
-      ${obj.type}
+     <span class="transaction-type-badge ${type}">
+      ${type}
      </span>
      <div class="transaction-details" style="text-align: left;">
-      <h3 class="transaction-category" style="text-align: left;">${obj.category}</h3>
+      <h3 class="transaction-category" style="text-align: left;">${category}</h3>
       <div class="transaction-meta">
-       <span class="transaction-date">${obj.date}</span>
+       <span class="transaction-date">${date}</span>
        <div class="meta-separator"></div>
-       <span class="transaction-status ${obj.status.toLowerCase()}">${obj.status}</span>
+       <span class="transaction-status ${status}">${status}</span>
       </div>
       ${
-       obj.status === "pending"
+       status === "pending"
        ? `<div class="countdown-timer">⏳ calculating...</div>`
        : ""
       }
      </div>
     </div>
     <div class="transaction-card-right">
-     <span class="transaction-amount ${obj.type.toLowerCase()}">
-      ${obj.type.toLowerCase() === 'expense' ? '-' : '+'}₹${obj.amount}
+     <span class="transaction-amount ${type}">
+      ${type === 'expense' ? '-' : '+'}₹${amount}
      </span>
-     <button class="transaction-delete-btn" onclick="deleteTransaction(${obj.id})">
+     <button class="transaction-delete-btn" onclick="deleteTransaction(${id})">
       Delete
      </button>
     </div>
@@ -647,10 +750,19 @@ function handleVoiceAutoPay(transcript){
     // parse the voice commands to extract amount category and time
     const parsed = parseAutoPayCommand(transcript)
 
-    if (!parsed.amount || !parsed.category || !parsed.scheduledTime) {
-      showTranscript.innerHTML = `<p style="color: red;">Could not parse autopay command. Please try: "Schedule autopay [amount] for [category] on [date] [time]"</p>`;
+    if (!parsed.amount) {
+      showTranscript.innerHTML = `<p style="color: red;">Could not find amount. Please say again.</p>`;
       return;
     }
+    if (!parsed.category) {
+      showTranscript.innerHTML = `<p style="color: red;">Could not find category. Please say again.</p>`;
+      return;
+    }
+    if (!parsed.scheduledTime) {
+      showTranscript.innerHTML = `<p style="color: red;">Could not find date/time. Please try again.</p>`;
+      return;
+    }
+    
 
     // Create autopay transaction
     const autopayTransaction = {
@@ -1018,4 +1130,12 @@ function csvExpo(){
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
+}
+
+function resetAllData() {
+  localStorage.removeItem('savedTransactions');
+  localStorage.removeItem('savedHistory');
+  transactions = [];
+  History = [];
+  location.reload();
 }
