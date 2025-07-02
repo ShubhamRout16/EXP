@@ -231,26 +231,26 @@ function renderHistory(){
     const item = document.createElement('div')
     item.className = 'transaction-card fade-in';
     item.innerHTML = `
-        <div class="transaction-card-left">
-            <span class="transaction-type-badge ${obj.type.toLowerCase()}">
-                ${obj.type}
+        <div class="transaction-card-left" style="text-align: left;">
+            <span class="transaction-type-badge ${obj.type?.toLowerCase() || 'income'}">
+            ${obj.type || 'Income'}
             </span>
-            <div class="transaction-details">
-                <h3 class="transaction-category">${obj.category}</h3>
-                <div class="transaction-meta">
-                    <span class="transaction-date">${obj.date}</span>
-                    <div class="meta-separator"></div>
-                    <span class="transaction-status ${statusClass}">
-                        ${status}
-                    </span>
-                </div>
-            </div>
-        </div>
-        <div class="transaction-card-right">
-            <span class="transaction-amount ${obj.type.toLowerCase()}">
-                ${obj.type.toLowerCase() === 'expense' ? '-' : '+'}₹${obj.amount}
+            <div class="transaction-details" style="text-align: left;">
+              <h3 class="transaction-category" style="text-align: left; margin: 0;">${obj.category}</h3>
+              <div class="transaction-meta">
+              <span class="transaction-date">${obj.date}</span>
+              <div class="meta-separator"></div>
+            <span class="transaction-status ${obj.deleted ? 'deleted' : obj.status?.toLowerCase() || 'done'}">
+              ${obj.deleted ? 'Deleted' : (obj.status || 'Done')}
             </span>
-        </div>
+      </div>
+    </div>
+  </div>
+  <div class="transaction-card-right">
+    <span class="transaction-amount ${obj.type?.toLowerCase() || 'income'}">
+      ${(obj.type?.toLowerCase() || 'income') === 'expense' ? '-' : '+'}₹${obj.amount}
+    </span>
+  </div>
     `;
     historyList.appendChild(item);
 })
@@ -593,12 +593,12 @@ function renderAutopayTransactions(){
       indiTransactionDiv.className = 'transaction-card fade-in'
       indiTransactionDiv.id = `transaction-${obj.id}`
       indiTransactionDiv.innerHTML = `
-      <div class="transaction-card-left">
+      <div class="transaction-card-left" style="text-align: left;">
      <span class="transaction-type-badge ${obj.type.toLowerCase()}">
       ${obj.type}
      </span>
-     <div class="transaction-details">
-      <h3 class="transaction-category">${obj.category}</h3>
+     <div class="transaction-details" style="text-align: left;">
+      <h3 class="transaction-category" style="text-align: left;">${obj.category}</h3>
       <div class="transaction-meta">
        <span class="transaction-date">${obj.date}</span>
        <div class="meta-separator"></div>
