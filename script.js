@@ -1,5 +1,6 @@
 window.onload = () => {
   loadSavedTransactions();
+  loadSavedHistory(); // load saved history -> for persistance
   autoPayCountdown();
 }
 // feat: just calculates balance and returns it
@@ -31,6 +32,11 @@ const history = document.getElementById('history')
 function showTab(tabName){
   if(tabName === 'analytics'){
     renderCharts();
+  }
+
+  // whenever user switches to history tab renders the history
+  if(tabName === 'history'){
+    renderHistory();
   }
   // removed active class from all the buttons
   const tabsBtn = document.querySelectorAll('.tab-trigger')
@@ -71,6 +77,8 @@ function showTab(tabName){
 */
 
 let transactions = [];
+// for history tab implementation
+let History = [];
 let currentId ;
 function addTransaction(event){
   event.preventDefault();
@@ -102,8 +110,17 @@ function addTransaction(event){
     }
     currentId = transactionObject.id;
     transactions.push(transactionObject);
+    // to update history 
+    console.log(transactionObject);
+    
+    History.push({
+      ...transactionObject,
+      deleted: false
+    })
+    console.log(History)
+    saveHistoryToLocalStorage();
   }
-  console.log(transactions);
+  // console.log(transactions);
   // saving changes to localStorage
   saveChangesToLocalStorage();
 
@@ -123,6 +140,19 @@ function addTransaction(event){
 
 }
 
+// function to save history to the local storage
+function saveHistoryToLocalStorage(){
+  localStorage.setItem('savedHistory',JSON.stringify(History))
+}
+
+// function to load saved history
+function loadSavedHistory(){
+  const savedHistory = JSON.parse(localStorage.getItem('savedHistory')) || []
+  if(savedHistory){
+    History = savedHistory;
+  }
+}
+
 // feat: to remove the added transaction from the recent transactions
 // here's what this feature will do
 // it will capture the element which is  used to call this function
@@ -131,6 +161,14 @@ function addTransaction(event){
 
 function deleteTransaction(id){
   transactions = transactions.filter(obj => obj.id !== id)
+
+  // to mark the deleted transactions in the history as deleted
+  const transactionHistory = History.find(obj => obj.id === id && !obj.deleted)
+  if(transactionHistory){
+    transactionHistory.deleted = true
+    saveHistoryToLocalStorage();
+  }
+
   // saving to localStorage
   saveChangesToLocalStorage();
   // rendering the transactions list
@@ -143,12 +181,88 @@ function deleteTransaction(id){
 
 }
 
-// feat: render the recent transactions list to show any changes made in the previous transactions list
-// here's what this feature will do
-// clears the recent transactions container
-// loops through the new transactions array -> if any changes is made
-// creates a new div element for every object in the transactions array
-// appends the new div to contianer 
+// renderHistory() to show the history tab
+// 1 -> show all transactions 
+// 2 -> reverse order 
+// 3 -> remove delete buttons
+// 4 -> show deleted tag for deleted items
+
+function renderHistory(){
+  const historyContainer = document.getElementById('history')
+
+  // Clear previous content
+  historyContainer.innerHTML = `
+    <div class="tab-placeholder">
+      <h3>Transaction History</h3>
+      <p>View all your past transactions and export data</p>
+      <div class="history-filters">
+        <button class="filter-button">Last 30 Days</button>
+        <button class="filter-button">Last 3 Months</button>
+        <button class="filter-button">Last Year</button>
+        <button class="filter-button">Export CSV</button>
+      </div>
+      <div id="history-list" class="history-list"></div>
+    </div>
+  `;
+
+  const historyList = historyContainer.querySelector('#history-list')
+
+  if(History.length === 0){
+    historyList.innerHTML = `
+      <div class="no-transactions-message">
+        <p>No transaction history found.</p>
+      </div>
+    `;
+    return;
+  }
+
+  // lets add reverse chronological order
+  const reversedHistory = [...History].sort((a,b) => b.id - a.id); // sorts the copied array in descending order
+  console.log(History);
+  
+  // console.log(reversedHistory);
+  
+
+  reversedHistory.forEach(obj => {
+    // FIXED: Add safety checks for undefined properties
+    const status = obj.deleted ? 'Deleted' : (obj.status || 'Done');
+    const statusClass = obj.deleted ? 'deleted' : (obj.status?.toLowerCase() || 'done');
+    
+    const item = document.createElement('div')
+    item.className = 'transaction-card fade-in';
+    item.innerHTML = `
+        <div class="transaction-card-left">
+            <span class="transaction-type-badge ${obj.type.toLowerCase()}">
+                ${obj.type}
+            </span>
+            <div class="transaction-details">
+                <h3 class="transaction-category">${obj.category}</h3>
+                <div class="transaction-meta">
+                    <span class="transaction-date">${obj.date}</span>
+                    <div class="meta-separator"></div>
+                    <span class="transaction-status ${statusClass}">
+                        ${status}
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="transaction-card-right">
+            <span class="transaction-amount ${obj.type.toLowerCase()}">
+                ${obj.type.toLowerCase() === 'expense' ? '-' : '+'}₹${obj.amount}
+            </span>
+        </div>
+    `;
+    historyList.appendChild(item);
+})
+}
+
+
+// feat: render the recent transactions list to show any changes made in the previous transactions list ✅
+// here's what this feature will do 
+// clears the recent transactions container ✅
+// loops through the new transactions array -> if any changes is made ✅
+// creates a new div element for every object in the transactions array ✅
+// appends the new div to contianer ✅
 
 function renderTransactions(){
   const transactionsContainer = document.getElementById('transactions-list')
@@ -815,3 +929,18 @@ function renderCharts(){
     }
   });
 }
+
+
+// feat: working on the history tab section
+// here's what this feature will do :-
+// 1 -> it should show all the transactions of the past and present ✅
+// 2 -> including the deleted transactions ✅
+// 3 -> it should filter transactions by type
+//      -> income , expense and autopay 
+//   -> it should also filter transactions by date
+// 4 -> show the transactions in reverse chronological order ✅
+//   -> show latest transaction on top and oldest on last (LIFO type) -> appending new on top ✅
+// 5 -> show a search box to filter through category
+// 6 -> delete task should not be shown in the history -> its task should solely to only show previous transactions made either delted or not ✅
+// 7 -> persistaance of the previously stored history data using -> localStorage ✅
+
